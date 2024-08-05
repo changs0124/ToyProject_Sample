@@ -1,50 +1,56 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRecoilState } from 'recoil';
-import { loginStateAtom, userAtom } from '../atoms/userAtoms';
+import { loginStateAtom, userIdAtom } from '../atoms/userAtoms';
 import { sessionApi } from '../apis/userApi';
 import { todoParamsAtom, todolistAtom } from '../atoms/todolistAtoms';
 import { todolistApi } from '../apis/todoApi';
 
 function LoginHook() {
     const [ loginState, setLoginState ] = useRecoilState(loginStateAtom);
-    const [ user, setUser ] = useRecoilState(userAtom);
+    const [ userId, setUserId ] = useRecoilState(userIdAtom);
     const [ todoParams, setTodoParams ] = useRecoilState(todoParamsAtom);
     const [ todolist, setTodolist ] = useRecoilState(todolistAtom);
 
     const loginCheck = async () => {
         const response = await sessionApi();
         if(response.status === 200) {
-            setUser(response.data);
+            setUserId(response.data);
         }else {
-            setUser(null);
+            setUserId(0);
+        }
+    }
+
+    const getTodolist = async () => {
+        const response = await todolistApi(todoParams);
+        if(response.status === 200) {
+            setTodolist(response.data);
+        } else {
+            setTodolist([]);
         }
     }
 
     useEffect(() => {
-        const getTodolist = async () => {
-            const response = await todolistApi(todoParams);
-            if(response.status === 200) {
-                setTodolist(response.data);
-            } else {
-                setTodolist([]);
-            }
+        if(todoParams.userId != 0) {
+            getTodolist();
         }
-        getTodolist();
     }, [todoParams])
 
     useEffect(() => {
-        setTodoParams(todoParams => {
-            return {
-                ...todoParams,
-                userId: user.userId
-            }
-        })
-    }, [user])
+        if(userId != 0) {
+            setTodoParams(todoParams => {
+                return {
+                    ...todoParams,
+                    userId: userId
+                }
+            })
+        }
+    }, [userId])
 
     useEffect(() => {
-        loginCheck();
-        console.log(user);
-
+        if(loginState) {
+            loginCheck();
+        }
+        setLoginState(false);
     }, [loginState]);
 
 }

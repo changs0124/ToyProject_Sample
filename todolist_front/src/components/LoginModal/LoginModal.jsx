@@ -1,16 +1,20 @@
-import { css } from '@emotion/react';
 /** @jsxImportSource @emotion/react */
 import * as s from "./style";
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactModal from 'react-modal';
 import { loginApi } from '../../apis/userApi';
-import { useRecoilState } from 'recoil';
-import { loginStateAtom, userAtom } from '../../atoms/userAtoms';
-/** @jsxImportSource @emotion/react */
+import { useSetRecoilState } from 'recoil';
+import { loginStateAtom } from '../../atoms/userAtoms';
 
 function LoginModal({ loginModal, closeModal }) {
-    const [ user, setUser ] = useRecoilState(userAtom);
-    const [ loginState, setLoginState ] = useRecoilState(loginStateAtom);
+    useEffect(() => {
+        setLoginUser({
+            userName: "",
+            password: ""
+        })
+    }, [loginModal])
+
+    const setLoginState = useSetRecoilState(loginStateAtom);
 
     const [ loginUser, setLoginUser ] = useState({
         userName: "",
@@ -27,26 +31,15 @@ function LoginModal({ loginModal, closeModal }) {
     }
 
     const handleLoginSubmitClick = async () => {
-        if(loginUser.userName === "") {
-            alert("ID Data : ");
-            return;
-        }
-        if(loginUser.password === "") {
-            alert("Password Data : ");
-            return;
-        }
         const response = await loginApi(loginUser);
-        if(response.status === 200) {
+        console.log(response.data);
+        if(response.data === true) {
             setLoginState(true);
             alert("Login Success");
         }else {
             setLoginState(false);
             alert("Login Fail");
         }
-        setLoginUser({
-            userName: "",
-            password: ""
-        })
         closeModal();
     }
 
@@ -58,9 +51,11 @@ function LoginModal({ loginModal, closeModal }) {
                 transform: 'translate(-50%, -50%)',
                 top: '50%',
                 left: '50%',
+                border: '2px solid #7A90E2',
+                borderRadius: '10px',
                 padding: '20px',
-                width: '300px',
-                height: '300px',
+                width: '500px',
+                height: '500px',
                 backgroundColor: '#fafafa',
                 }
             }}
@@ -69,8 +64,10 @@ function LoginModal({ loginModal, closeModal }) {
         >
             <div css={s.modalBox}>
                 <h2>LOGIN</h2>
-                <input type="text" name='userName' onChange={handleInputChange} value={loginUser.userName} placeholder='ID :'/>
-                <input type="password" name='password' onChange={handleInputChange} value={loginUser.password} placeholder='Password :'/>
+                <div css={s.ipBox}>
+                    <input type="text" name='userName' onChange={handleInputChange} value={loginUser.userName} placeholder='ID' autoFocus/>
+                    <input type="password" name='password' onChange={handleInputChange} value={loginUser.password} placeholder='Password'/>
+                </div>
                 <div css={s.buttonBox}>
                     <button onClick={handleLoginSubmitClick}>Login</button>
                     <button onClick={closeModal}>Cancel</button>

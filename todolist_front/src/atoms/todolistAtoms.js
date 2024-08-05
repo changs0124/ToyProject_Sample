@@ -16,12 +16,12 @@ const nowYearAndMonth = {
     month: (new Date().getMonth() + 1)
 }
 
-const registerDate = nowYearAndMonth.year + "-" + (nowYearAndMonth.month >= 10 ? nowYearAndMonth.month : "0" + nowYearAndMonth.month) ;
+const defaultDate = nowYearAndMonth.year + "-" + (nowYearAndMonth.month >= 10 ? nowYearAndMonth.month : "0" + nowYearAndMonth.month) ;
 
 export const todoParamsAtom = atom({
     key: "todoParams",
     default: {
         userId: 0,
-        registerDate: registerDate
+        registerDate: defaultDate
     }
 })

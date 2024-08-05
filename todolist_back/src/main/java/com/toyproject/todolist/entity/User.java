@@ -16,11 +16,4 @@ public class User {
     private String password;
     private String name;
     private String email;
-
-    public RespLoginUserDto toRespLoginUserDto() {
-        return RespLoginUserDto.builder()
-                .userId(userId)
-                .userName(userName)
-                .build();
-    }
 }

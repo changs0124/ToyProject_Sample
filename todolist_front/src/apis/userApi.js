@@ -51,3 +51,16 @@ export async function invalidateSessionApi() {
 
     return response;
 }
+
+export async function duplicateUserName(data) {
+    let response = null;
+
+    try {
+        response = await api.get(`/user/duplicate/${data}`);
+    } catch (e) {
+        console.error(e);
+        response = e.response;
+    }
+
+    return response;
+}

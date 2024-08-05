@@ -1,8 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import * as s from "./style";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactModal from 'react-modal';
-import { registerApi } from '../../apis/userApi';
+import { duplicateUserName, registerApi } from '../../apis/userApi';
 /** @jsxImportSource @emotion/react */
 
 function RegisterModal({registerModal, closeModal}) {
@@ -12,6 +12,15 @@ function RegisterModal({registerModal, closeModal}) {
         name: "",
         email: ""
     })
+
+    useEffect(() => {
+        setRegisterUser({
+            userName: "",
+            password: "",
+            name: "",
+            email: ""
+        })
+    }, [registerModal])
 
     const handleInputOnChange = (e) => {
         setRegisterUser(registerUser => {
@@ -24,47 +33,50 @@ function RegisterModal({registerModal, closeModal}) {
 
     const handleRegisterSubmitClick = async () => {
         if(registerUser.userName === "") {
-            alert("ID Data : ");
+            alert("Please enter your ID");
             return;
         }
         if(registerUser.password === "") {
-            alert("Password Data : ");
+            alert("Please enter your Password");
             return;
         }
         if(registerUser.name === "") {
-            alert("Name Data : ");
+            alert("Please enter your Name");
             return;
         }
         if(registerUser.email === "") {
-            alert("Email Data : ");
+            alert("Please enter your Email");
             return;
         }
         const response = await registerApi(registerUser);
         if(response.status === 200) {
             alert("Register Success");
-        }else {
+        } else {
             alert("Register Fail");
         }
-        setRegisterUser({
-            userName: "",
-            password: "",
-            name: "",
-            email: ""
-        }) 
         closeModal();
+    }
+
+    const handleDuplicateUserNameOnBlur = async () => {
+        const response = await duplicateUserName(registerUser.userName);
+        console.log(response.data);
+        response.data === 1 ? alert("Usable ID") : alert("Duplicate ID")
     }
 
     return (
         <ReactModal
             style={{
                 content: {
-                boxSizing: 'border-box',
-                transform: 'translate(-50%, -50%)',
-                top: '50%',
-                left: '50%',
-                width: '300px',
-                height: '300px',
-                backgroundColor: '#fafafa',
+                    boxSizing: 'border-box',
+                    transform: 'translate(-50%, -50%)',
+                    top: '50%',
+                    left: '50%',
+                    border: '2px solid #7A90E2',
+                    borderRadius: '10px',
+                    padding: '20px',
+                    width: '500px',
+                    height: '500px',
+                    backgroundColor: '#fafafa',
                 }
             }}
             isOpen={registerModal}
@@ -72,10 +84,12 @@ function RegisterModal({registerModal, closeModal}) {
         >
             <div css={s.modalBox}>
                 <h2>REGISTER</h2>
-                <input type="text" name='userName' onChange={handleInputOnChange} value={registerUser.userName} placeholder='ID :'/>
-                <input type="password" name='password' onChange={handleInputOnChange} value={registerUser.password} placeholder='Password :'/>
-                <input type="text" name='name' onChange={handleInputOnChange} value={registerUser.name} placeholder='Name :'/>
-                <input type="text" name='email' onChange={handleInputOnChange} value={registerUser.email} placeholder='Email :'/>
+                <div css={s.ipBox}>
+                    <input type="text" name='userName' onBlur={handleDuplicateUserNameOnBlur} onChange={handleInputOnChange} value={registerUser.userName} placeholder='ID' autoFocus/>
+                    <input type="password" name='password' onChange={handleInputOnChange} value={registerUser.password} placeholder='Password'/>
+                    <input type="text" name='name' onChange={handleInputOnChange} value={registerUser.name} placeholder='Name'/>
+                    <input type="text" name='email' onChange={handleInputOnChange} value={registerUser.email} placeholder='Email'/>
+                </div>
                 <div css={s.buttonBox}>
                     <button onClick={handleRegisterSubmitClick}>Register</button>
                     <button onClick={closeModal}>Cancel</button>

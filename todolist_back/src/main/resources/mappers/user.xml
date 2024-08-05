@@ -8,7 +8,8 @@
         insert into user_tb
         values(0, #{userName}, #{password}, #{name}, #{email})
     </insert>
-    <select id="findUserByUserNameAndPassword" resultType="com.toyproject.todolist.entity.User">
+
+    <select id="findUserByUserName" resultType="com.toyproject.todolist.entity.User">
         select
             userId,
             userName,
@@ -18,7 +19,27 @@
         from
             user_tb
         where
-            userName = #{userName} and password = #{password}
+            userName = #{userName}
+    </select>
+
+    <select id="getAllUsers" resultType="com.toyproject.todolist.entity.User">
+        select
+            userId,
+            userName,
+            password,
+            name,
+            email
+        from
+            user_tb
+    </select>
+
+    <select id="duplicate" resultType="java.lang.Integer">
+        select
+            *
+        from
+            user_tb
+        where
+            userName = #{userName}
     </select>
 
 </mapper>

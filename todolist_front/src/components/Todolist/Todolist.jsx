@@ -5,15 +5,14 @@ import { useRecoilState } from 'recoil';
 import { todoIdAtom, todoParamsAtom, todolistAtom } from '../../atoms/todolistAtoms';
 import { deleteTodo, todolistApi, updateTodoState } from '../../apis/todoApi';
 import UpdateModal from '../UpdateModal/UpdateModal';
+import { PiCircle, PiCheckCircleFill } from "react-icons/pi";
 
 function Todolist() {
-    const checkBoxRef = useRef();
     const [ todolist, setTodolist ] = useRecoilState(todolistAtom);
     const [ todoId, setTodoId ] = useRecoilState(todoIdAtom);
     const [ todoParams, setTodoParams ] = useRecoilState(todoParamsAtom);
     const [ checkedBox, setCheckedBox ] = useState(0);
     const [ updateModal, setUpdateModal ] = useState(false);
-
     const openUpdateModal = () => {
         setUpdateModal(true);
     }
@@ -32,20 +31,17 @@ function Todolist() {
         }
     }
 
-    const handleClcikOutside = (e) => {
-        const currentRef = checkBoxRef.current;
-        if(currentRef && !currentRef.contains(e.target)) {
-            setCheckedBox(e.target.checked ? e.target.value : 0);
-        }
-    }
-
     const handleCheckBoxChange = (e) => {
-        setCheckedBox(e.target.checked ? e.target.value : 0);
+        if (e.target.checked) {  
+            setCheckedBox(e.target.value);
+        } else {
+            setCheckedBox(0);
+        }
         setTodoId(e.target.checked ? e.target.value : 0);
     }
  
     const handleDeleteClick = async () => {
-        if(window.confirm("삭제하시겠습니까?")) {
+        if(window.confirm("Delete?")) {
             try {
                 const response = await deleteTodo(todoId);
                 console.log(response.data);
@@ -53,12 +49,12 @@ function Todolist() {
                 console.error(e);
             }
             getTodolist();
-            alert("삭제 완료");
+            alert("Success Delete");
         } 
     }
 
     const handleChangeStateClick = async () => {
-        if(window.confirm("완료 하시겠습까?")) {
+        if(window.confirm("Change State?")) {
             try {
                 const response = await updateTodoState(todoId);
                 console.log(response.data);
@@ -66,40 +62,40 @@ function Todolist() {
                 console.error(e);
             }
             getTodolist();
-            alert("완료");
+            alert("Success Change State");
         } 
     }
 
-    useEffect(() => {
-        document.addEventListener('click', handleClcikOutside)
-        return () => {
-            document.removeEventListener('click', handleClcikOutside)
-        }
-    }, [checkBoxRef.current])
     return (
-        <>
-            <UpdateModal updateModal={updateModal} closeModal={closeModal} />
+        <div css={s.layout}>
+            <UpdateModal updateModal={updateModal} closeModal={closeModal}/>
+            <div css={s.todoHeader}><h2>To Do</h2></div>
             <div css={s.container}>
                 {
                     todolist.filter(todo => todo.state === 0).map(todo => 
-                        <div css={s.listBox} key={todo.todoId}>
+                        <div css={s.todoBox} key={todo.todoId}>
                             <div css={s.ipBox}>
-                                <input type="checkbox" onChange={handleCheckBoxChange} checked={todo.todoId === parseInt(checkedBox)} css={s.checkbox} value={todo.todoId} ref={checkBoxRef}/>
+                                <label htmlFor={todo.todoId} >
+                                    {
+                                        parseInt(checkedBox) === todo.todoId ? <PiCheckCircleFill css={s.checkIcon} /> : <PiCircle css={s.checkIcon}/>
+                                    }
+                                </label>
+                                <input id={todo.todoId} type="checkbox" onChange={handleCheckBoxChange} checked={parseInt(checkedBox) === todo.todoId} value={todo.todoId}/>
                                 <p>{todo.content}</p>
                             </div>
                             {
                                 todo.todoId === parseInt(checkedBox) ? 
                                 <div css={s.buttonBox}>
-                                    <button css={s.button} onClick={openUpdateModal}>수정</button>
-                                    <button css={s.button} onClick={handleDeleteClick}>삭제</button>
-                                    <button css={s.button} onClick={handleChangeStateClick}>확인</button>
+                                    <button css={s.button} onClick={openUpdateModal}>Update</button>
+                                    <button css={s.button} onClick={handleDeleteClick}>Delete</button>
+                                    <button css={s.button} onClick={handleChangeStateClick}>ChangeState</button>
                                 </div> : <div></div>
                             }
                         </div>
                     )
                 }
             </div>
-        </>
+        </div>
        
     );
 }

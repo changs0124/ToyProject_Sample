@@ -2,19 +2,25 @@ import React, { useEffect, useState } from 'react';
 /** @jsxImportSource @emotion/react */
 import * as s from "./style";
 import { useRecoilState } from 'recoil';
-import { userAtom } from '../../atoms/userAtoms';
+import { loginStateAtom, userAtom, userIdAtom } from '../../atoms/userAtoms';
 import ReactModal from 'react-modal';
 import { invalidateSessionApi } from '../../apis/userApi';
 import LoginModal from '../LoginModal/LoginModal';
 import RegisterModal from '../RegisterModal/RegisterModal';
 import WriteModal from '../WriteModal/WriteModal';
-import { searchTodo, todolistApi } from '../../apis/todoApi';
+import { searchTodo } from '../../apis/todoApi';
 import { todolistAtom, todoParamsAtom } from '../../atoms/todolistAtoms';
-import { BsNutFill } from 'react-icons/bs';
 ReactModal.setAppElement("#root");
 
 function Header(props) {
-    const [ user, setUser ] = useRecoilState(userAtom)
+    const nowYearAndMonth = {    
+        year: new Date().getFullYear(),
+        month: (new Date().getMonth() + 1)
+    }
+    
+    const defaultDate = nowYearAndMonth.year + "-" + (nowYearAndMonth.month >= 10 ? nowYearAndMonth.month : "0" + nowYearAndMonth.month) ;
+    const [ userId, setUserId ] = useRecoilState(userIdAtom)
+    const [ loginState, setLoginState ] = useRecoilState(loginStateAtom);
     const [ todolist, setTodolist ] = useRecoilState(todolistAtom);
     const [ todoParams, setTodoParams ] = useRecoilState(todoParamsAtom);
 
@@ -24,8 +30,8 @@ function Header(props) {
 
     const [ searchInput, setSearchInput ] = useState({
         content: "",
-        userId: user.userId,
-        registerDate: todoParams
+        userId: todoParams.userId,
+        registerDate: todoParams.registerDate
     });
     
     const closeModal = () => {
@@ -46,18 +52,30 @@ function Header(props) {
         setWriteModal(true);
     }
 
-
-    const handleLogoutClick = async () => {
-        try { 
-            const response = await invalidateSessionApi();
-            console.log(response.data);
+    const getTodolistBySearchInput = async () => {
+        try {
+            const response = await searchTodo(searchInput);
+            setTodolist(response.data);
         } catch(e) {
             console.error(e);
         }
-        setUser({
-            userId: 0,
-            userName: ""
-        });
+    }
+
+    const handleLogoutClick = async () => {
+        if(window.confirm("Logout?")) {
+            try { 
+                const response = await invalidateSessionApi();
+                console.log(response.data);
+            } catch(e) {
+                console.error(e);
+            }
+            setLoginState(false);
+            setUserId(0);
+            setTodoParams({
+                registerDate: defaultDate
+            })
+        }
+        
     }
 
     const handleSearchInputChange = (e) => {
@@ -71,15 +89,11 @@ function Header(props) {
         })
     }
 
+    const handleSearchInputOnBlur = () => {
+        searchInput.content = ""
+    }
+
     useEffect(() => {
-        const getTodolistBySearchInput = async () => {
-            try {
-                const response = await searchTodo(searchInput);
-                setTodolist(response.data);
-            } catch(e) {
-                console.error(e);
-            }
-        }
         getTodolistBySearchInput();
     }, [searchInput])
 
@@ -91,9 +105,9 @@ function Header(props) {
             <div css={s.layout}> 
                 <h2 css={s.logo}>To-Do-List</h2>
                 {
-                    !!user ? 
+                    userId ? 
                         <div css={s.nav}>
-                            <input type="text" onChange={handleSearchInputChange} value={searchInput.content} placeholder='Search Date : '/>
+                            <input type="text" onBlur={handleSearchInputOnBlur} onChange={handleSearchInputChange} value={searchInput.content} placeholder='Search Data'/>
                             <p css={s.link} onClick={onpenWriteModal}>Write</p>
                             <p css={s.link} onClick={handleLogoutClick}>Logout</p>
                         </div> 

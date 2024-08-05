@@ -22,12 +22,8 @@ public class UserController {
     @GetMapping("/session")
     public ResponseEntity<?> getSession(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        RespLoginUserDto user = (RespLoginUserDto) session.getAttribute("user");
-        log.info("ID: {}", session.getId());
-        log.info("user: {}", user);
-
-        return ResponseEntity.ok().body(user);
-
+        Object userId = session.getAttribute("userId");
+        return ResponseEntity.ok().body(userId);
     }
 
     @GetMapping("/session/remove")
@@ -38,6 +34,12 @@ public class UserController {
         return ResponseEntity.ok().body(null);
     }
 
+    @GetMapping("/user/duplicate/{userName}")
+    public ResponseEntity<?> duplicateUserName(@PathVariable String userName) {
+        log.info("{}", userName);
+        return ResponseEntity.ok().body(userService.duplicateUserName(userName));
+    }
+
     @PostMapping("/user")
     public ResponseEntity<?> registerUser(@RequestBody ReqRegisterUserDto reqRegisterUserDto) {
         log.info("{}", reqRegisterUserDto);
@@ -46,12 +48,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody ReqLoginUserDto reqLoginUserDto, HttpServletRequest request) {
-        RespLoginUserDto user = userService.loginUser(reqLoginUserDto);
         HttpSession session = request.getSession();
-        session.setAttribute("user", user);
-        log.info("ID: {}", session.getId());
-        log.info("{}", reqLoginUserDto);
-        log.info("{}", request);
-        return ResponseEntity.ok().body(user);
+        return ResponseEntity.ok().body(userService.loginUser(reqLoginUserDto, session));
     }
 }
